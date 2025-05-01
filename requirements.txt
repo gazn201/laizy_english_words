@@ -1,0 +1,6 @@
+fastapi==0.110.2
+uvicorn==0.29.0
+python-dotenv==1.0.1
+openai==1.14.2
+python-telegram-bot==20.8
+apscheduler==3.10.4
