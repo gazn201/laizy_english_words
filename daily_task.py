@@ -19,6 +19,7 @@ logging.basicConfig(
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 model = os.getenv("OPENAI_MODEL")
+image_model = os.getenv("OPENAI_IMAGE_MODEL")
 bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
 channel_id = os.getenv("TELEGRAM_CHANNEL_ID")
 
@@ -50,14 +51,38 @@ def generate_task(task_type, system_prompt, user_prompt):
     except Exception as e:
         logging.error(f"{task_type} response error {e}")
 
+def generate_image(prompt):
+    try:
+        response = client.images.generate(
+            model=image_model,
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        logging.info(f"Image was generated!")
+        return response.data[0].url
+    except Exception as e:
+        logging.error(f"Image generation error: {e}")
+        return None
+
 async def send_message(task_type, system_prompt, user_promot):
     task = generate_task(task_type, system_prompt, user_promot)
     if task:
+        image_prompt = f"An educational visual illustration for the topic: {task_type}, minimal, emoji style"
+        image_url = generate_image(image_prompt)
         try:
-            response = await bot.send_message(
-                chat_id=channel_id,
-                text=f"{task}"
-            )
+            if image_url:
+                response = await bot.send_photo(
+                    chat_id=channel_id,
+                    photo=image_url,
+                    caption=f"{task}"
+                )
+            else:
+                response = await bot.send_message(
+                    chat_id=channel_id,
+                    text=task
+                )
             logging.info(f"{task_type} message was successfully sent! {response}")
         except Exception as e:
             logging.error(f"{task_type} message wasn't sent: {e}")
