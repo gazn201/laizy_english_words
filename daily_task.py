@@ -29,7 +29,7 @@ scheduler = AsyncIOScheduler()
 system_prompt = "Ти допомагаєш людині вивчати англійські слова в стилі контекстного запамʼятовування, правила та інші корисні штуки з англійскої мови."
 words_prompt = "Згенеруй сьогоднішнє завдання (3 нових слова і вправи в стилі контекстного запамʼятовування) на англійській із перекладом на українську, щоб було зрозуміло, як використовуються слова. Також додай emoji і все це повинно бути коротко і зрозуміло описано."
 rule_prompt = "Згенеруй сьогоднішнє коротке, зрозуміле граматичне правило з прикладами. англійською мовою з перекладом на українську і прикладами. Додай emoji."
-idioms_prompt = "Згенеруй сьогоднішню ідіому англійською мовою з перекладом на українську і прикладами. Додай emoji."
+idioms_prompt = "Згенеруй сьогоднішню ідіому англійською мовою з перекладом на українську і прикладами. Додай emoji. Не повторюй ідіоми, які ти вже генерував раніше. Кожна ідіома повинна бути новою та унікальною."
 
 def generate_task(task_type, system_prompt, user_prompt):
     try:
@@ -69,7 +69,7 @@ def generate_image(prompt):
 async def send_message(task_type, system_prompt, user_promot):
     task = generate_task(task_type, system_prompt, user_promot)
     if task:
-        image_prompt = f"An educational visual illustration for the topic: {task_type}, minimal, emoji style"
+        image_prompt = f"An educational visual illustration for the topic: {task_type}, minimal, without text"
         image_url = generate_image(image_prompt)
         try:
             if image_url:
@@ -87,25 +87,25 @@ async def send_message(task_type, system_prompt, user_promot):
         except Exception as e:
             logging.error(f"{task_type} message wasn't sent: {e}")
 
-def schedule_async_task(coro):
+def schedule_async_task(task_type, system_prompt, user_prompt):
     async def runner():
-        await coro
+        await send_message(task_type, system_prompt, user_prompt)
     return runner
 
 @app.on_event("startup")
 async def startup_event():
-    scheduler.add_job(schedule_async_task(send_message("words", system_prompt, words_prompt)), "cron", hour=9, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("rules", system_prompt, rule_prompt)), "cron", hour=9, minute=30)
-    scheduler.add_job(schedule_async_task(send_message("idioms", system_prompt, idioms_prompt)), "cron", hour=10, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("words", system_prompt, words_prompt)), "cron", hour=12, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("rules", system_prompt, rule_prompt)), "cron", hour=12, minute=30)
-    scheduler.add_job(schedule_async_task(send_message("idioms", system_prompt, idioms_prompt)), "cron", hour=13, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("words", system_prompt, words_prompt)), "cron", hour=14, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("rules", system_prompt, rule_prompt)), "cron", hour=14, minute=30)
-    scheduler.add_job(schedule_async_task(send_message("idioms", system_prompt, idioms_prompt)), "cron", hour=15, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("words", system_prompt, words_prompt)), "cron", hour=16, minute=0)
-    scheduler.add_job(schedule_async_task(send_message("rules", system_prompt, rule_prompt)), "cron", hour=16, minute=11)
-    scheduler.add_job(schedule_async_task(send_message("idioms", system_prompt, idioms_prompt)), "cron", hour=17, minute=0)
+    scheduler.add_job(schedule_async_task("words", system_prompt, words_prompt), "cron", hour=9, minute=0)
+    scheduler.add_job(schedule_async_task("rules", system_prompt, rule_prompt), "cron", hour=9, minute=30)
+    scheduler.add_job(schedule_async_task("idioms", system_prompt, idioms_prompt), "cron", hour=10, minute=0)
+    scheduler.add_job(schedule_async_task("words", system_prompt, words_prompt), "cron", hour=12, minute=0)
+    scheduler.add_job(schedule_async_task("rules", system_prompt, rule_prompt), "cron", hour=12, minute=30)
+    scheduler.add_job(schedule_async_task("idioms", system_prompt, idioms_prompt), "cron", hour=13, minute=0)
+    scheduler.add_job(schedule_async_task("words", system_prompt, words_prompt), "cron", hour=14, minute=0)
+    scheduler.add_job(schedule_async_task("rules", system_prompt, rule_prompt), "cron", hour=14, minute=30)
+    scheduler.add_job(schedule_async_task("idioms", system_prompt, idioms_prompt), "cron", hour=15, minute=0)
+    scheduler.add_job(schedule_async_task("words", system_prompt, words_prompt), "cron", hour=16, minute=0)
+    scheduler.add_job(schedule_async_task("rules", system_prompt, rule_prompt), "cron", hour=16, minute=11)
+    scheduler.add_job(schedule_async_task("idioms", system_prompt, idioms_prompt), "cron", hour=17, minute=0)
     scheduler.start()
 
 
